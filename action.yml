@@ -1,8 +1,8 @@
 name: "Upload components"
-description: "Upload components to Espressif component service"
+description: "Upload components to Espressif IDF component registry"
 inputs:
   api_token:
-    description: "API Token for component service"
+    description: "API Token for the component registry"
     required: true
   namespace:
     description: "Component namespace"
@@ -19,7 +19,7 @@ inputs:
     description: "Version of the component, if not specified in the manifest. Can be a semantic version or `git` for getting version from git tag."
     required: false
   service_url:
-    description: "Component service API endpoint"
+    description: "Component registry API endpoint"
     required: false
   skip_pre_release:
     description: "Flag to skip pre-release versions. Set it to any non-empty string to skip pre-release versions."
