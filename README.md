@@ -63,7 +63,7 @@ jobs:
           submodules: "recursive"
 
       - name: Upload components to the component registry
-        uses: esprespressif/upload-components-ci-action@v1
+        uses: espressif/upload-components-ci-action@v1
         with:
           directories: "components/my_component;components/another_component"
           namespace: "espressif"
