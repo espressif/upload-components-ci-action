@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IFS=';' read -ra DIRECTORIES <<<"${COMPONENTS_DIRECTORIES:-.}"
+IFS=';' read -ra DIRECTORIES <<<"$(echo -e "${COMPONENTS_DIRECTORIES:-.}" | tr -d '[:space:]')"
 NAMESPACE=${COMPONENTS_NAMESPACE:-espressif}
 UPLOAD_ARGUMENTS=("--allow-existing" "--namespace=${NAMESPACE}" )
 if [ -n "$SKIP_PRE_RELEASE" ]; then
