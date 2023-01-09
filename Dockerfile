@@ -1,6 +1,6 @@
 FROM python:3.10-bullseye
 
-RUN pip install idf-component-manager~=1.1
+RUN pip install idf-component-manager~=1.2
 
 COPY upload.sh /upload.sh
 
