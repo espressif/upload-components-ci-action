@@ -72,12 +72,13 @@ jobs:
 
 ## Parameters
 
-| Input            | Optional | Default   | Description                                                                                                                    |
-| ---------------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| api_token        | ❌       |           | API Token for the component registry                                                                                           |
-| namespace        | ❌       |           | Component namespace                                                                                                            |
-| name             | ✔ / ❌   |           | Name is required for uploading a component from the root of the repository                                                     |
-| version          | ✔        |           | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3` |
-| directories      | ✔        | Repo root | Semicolon separated list of directories with components.                                                                       |
-| skip_pre_release | ✔        | False     | Flag to skip [pre-release](https://semver.org/#spec-item-9) versions                                                           |
-| service_url      | ✔        |           | IDF Component registry API URL, default https://api.components.espressif.com/                                                  |
+| Input            | Optional | Default                              | Description                                                                                                                    |
+|------------------|----------|--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| api_token        | ❌        |                                      | API Token for the component registry                                                                                           |
+| namespace        | ❌        |                                      | Component namespace                                                                                                            |
+| name             | ✔ / ❌    |                                      | Name is required for uploading a component from the root of the repository                                                     |
+| version          | ✔        |                                      | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3` |
+| directories      | ✔        | Repo root                            | Semicolon separated list of directories with components.                                                                       |
+| skip_pre_release | ✔        | False                                | Flag to skip [pre-release](https://semver.org/#spec-item-9) versions                                                           |
+| service_url      | ✔        | https://components.espressif.com/api | (Deprecated) IDF Component registry API URL                                                                                    |
+| registry_url     | ✔        | https://components.espressif.com/    | IDF Component registry URL                                                                                                     |

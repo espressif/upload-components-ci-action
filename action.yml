@@ -24,6 +24,9 @@ inputs:
   service_url:
     description: "Component registry API endpoint"
     required: false
+  registry_url:
+    description: "Component registry endpoint"
+    required: false
   skip_pre_release:
     description: "Flag to skip pre-release versions. Set it to any non-empty string to skip pre-release versions."
     required: false
@@ -37,4 +40,5 @@ runs:
     COMPONENT_VERSION: ${{ inputs.version }}
     IDF_COMPONENT_API_TOKEN: ${{ inputs.api_token }}
     DEFAULT_COMPONENT_SERVICE_URL: ${{ inputs.service_url }}
+    IDF_COMPONENT_REGISTRY_URL: ${{ inputs.registry_url }}
     SKIP_PRE_RELEASE: ${{ inputs.skip_pre_release }}

@@ -35,7 +35,7 @@ for ITEM in "${DIRECTORIES[@]}"; do
     fi
 
     echo "Processing component \"$NAME\" at $ITEM"
-    python3 -m idf_component_manager upload-component "${UPLOAD_ARGUMENTS[@]}" --path="${FULL_PATH}" --name="${NAME}"
+    compote component upload "${UPLOAD_ARGUMENTS[@]}" --project-dir="${FULL_PATH}" --name="${NAME}"
 
     EXIT_CODE=$?
     if [ "$EXIT_CODE" -ne "0" ]; then
