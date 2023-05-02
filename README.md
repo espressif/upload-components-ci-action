@@ -2,6 +2,10 @@
 
 This action uploads [ESP-IDF](https://github.com/espressif/esp-idf) components from a GitHub repository to [Espressif Component Registry](https://components.espressif.com).
 
+❗❗❗
+**his branch utilizes the pre-release version of the IDF component manager. Unless you intend to test upcoming features, it is recommended to use the [stable branch - V1](https://github.com/espressif/upload-components-ci-action/tree/v1) instead.**
+❗❗❗
+
 ## Usage
 
 The action requires `api_token` and `namespace` parameters to be set. If the repository contains the only component stored in the root of the repository, then the `name` parameter is also required. If the repository contains more than 1 component in subdirectories, it's necessary to set the `directories` parameter to the semicolon-separated list of directories with components. In this case, the base name of the directory will be used as a component name.
@@ -73,10 +77,10 @@ jobs:
 ## Parameters
 
 | Input            | Optional | Default                              | Description                                                                                                                    |
-|------------------|----------|--------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| api_token        | ❌        |                                      | API Token for the component registry                                                                                           |
-| namespace        | ❌        |                                      | Component namespace                                                                                                            |
-| name             | ✔ / ❌    |                                      | Name is required for uploading a component from the root of the repository                                                     |
+| ---------------- | -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| api_token        | ❌       |                                      | API Token for the component registry                                                                                           |
+| namespace        | ❌       |                                      | Component namespace                                                                                                            |
+| name             | ✔ / ❌   |                                      | Name is required for uploading a component from the root of the repository                                                     |
 | version          | ✔        |                                      | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3` |
 | directories      | ✔        | Repo root                            | Semicolon separated list of directories with components.                                                                       |
 | skip_pre_release | ✔        | False                                | Flag to skip [pre-release](https://semver.org/#spec-item-9) versions                                                           |
