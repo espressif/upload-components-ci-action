@@ -6,6 +6,9 @@ UPLOAD_ARGUMENTS=("--allow-existing" "--namespace=${NAMESPACE}" )
 if [ -n "$SKIP_PRE_RELEASE" ]; then
     UPLOAD_ARGUMENTS+=("--skip-pre-release")
 fi
+if [ -n "$DRY_RUN" ]; then
+    UPLOAD_ARGUMENTS+=("--dry-run")
+fi
 
 if [ -n "$COMPONENT_VERSION" ]; then
     if [ "$COMPONENT_VERSION" == "git" ]; then

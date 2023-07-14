@@ -30,6 +30,9 @@ inputs:
   skip_pre_release:
     description: "Flag to skip pre-release versions. Set it to any non-empty string to skip pre-release versions."
     required: false
+  dry_run:
+    description: "Upload component for validation without creating a version in the registry."
+    required: false
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -42,3 +45,4 @@ runs:
     DEFAULT_COMPONENT_SERVICE_URL: ${{ inputs.service_url }}
     IDF_COMPONENT_REGISTRY_URL: ${{ inputs.registry_url }}
     SKIP_PRE_RELEASE: ${{ inputs.skip_pre_release }}
+    DRY_RUN: ${{ inputs.dry_run }}
