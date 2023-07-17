@@ -1,6 +1,6 @@
 FROM python:3.10-bullseye
 
-RUN pip install "idf-component-manager~=1.3" "urllib3<2"
+RUN pip install "idf-component-manager~=1.3"
 
 COPY upload.sh /upload.sh
 
