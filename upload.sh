@@ -3,10 +3,10 @@
 IFS=';' read -ra DIRECTORIES <<<"$(echo -e "${COMPONENTS_DIRECTORIES:-.}" | tr -d '[:space:]')"
 NAMESPACE=${COMPONENTS_NAMESPACE:-espressif}
 UPLOAD_ARGUMENTS=("--allow-existing" "--namespace=${NAMESPACE}" )
-if [ -n "$SKIP_PRE_RELEASE" ]; then
+if [[ "${SKIP_PRE_RELEASE,,}" =~ ^(true|t|yes|1)$ ]]; then
     UPLOAD_ARGUMENTS+=("--skip-pre-release")
 fi
-if [ -n "$DRY_RUN" ]; then
+if [[ "${DRY_RUN,,}" =~ ^(true|t|yes|1)$ ]]; then
     UPLOAD_ARGUMENTS+=("--dry-run")
 fi
 
