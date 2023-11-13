@@ -24,6 +24,7 @@ fi
 NUMBER_OF_DIRECTORIES="${#DIRECTORIES[@]}"
 echo "Processing $NUMBER_OF_DIRECTORIES components"
 
+FAILED_COMPONENTS=()
 for ITEM in "${DIRECTORIES[@]}"; do
     FULL_PATH="${GITHUB_WORKSPACE?}/${ITEM}"
     if [ "$NUMBER_OF_DIRECTORIES" -eq "1" ] && [ "${ITEM}" == "." ] && [ -z "${COMPONENT_NAME}" ]; then
@@ -42,7 +43,14 @@ for ITEM in "${DIRECTORIES[@]}"; do
 
     EXIT_CODE=$?
     if [ "$EXIT_CODE" -ne "0" ]; then
-        echo "An error occurred while uploading the new version of ${NAMESPACE}/${NAME}."
-        exit 1
+        FAILED_COMPONENTS+=("${NAMESPACE}/${NAME}")
     fi
 done
+
+if [ ${#FAILED_COMPONENTS[@]} -ne 0 ]; then
+    echo "Failed to upload the following components:"
+    for COMPONENT in "${FAILED_COMPONENTS[@]}"; do
+        echo "- ${COMPONENT}"
+    done
+    exit 1
+fi
