@@ -33,6 +33,14 @@ inputs:
   dry_run:
     description: "Upload component for validation without creating a version in the registry."
     required: false
+  repository_url:
+    description: "URL of the repository where component is located"
+    required: false
+    default: ${{ github.repositoryUrl }}
+  commit_sha:
+    description: "Git commit SHA of the the component version"
+    required: false
+    default: ${{ github.sha }}
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -46,3 +54,5 @@ runs:
     IDF_COMPONENT_REGISTRY_URL: ${{ inputs.registry_url }}
     SKIP_PRE_RELEASE: ${{ inputs.skip_pre_release }}
     DRY_RUN: ${{ inputs.dry_run }}
+    REPOSITORY_URL: ${{ inputs.repository_url }}
+    REPOSITORY_COMMIT_SHA: ${{ inputs.commit_sha }}

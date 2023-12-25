@@ -39,7 +39,24 @@ for ITEM in "${DIRECTORIES[@]}"; do
     fi
 
     echo "Processing component \"$NAME\" at $ITEM"
-    compote component upload "${UPLOAD_ARGUMENTS[@]}" --project-dir="${FULL_PATH}" --name="${NAME}"
+
+    PARAMS=("${UPLOAD_ARGUMENTS[@]}")
+    PARAMS+=("--project-dir=${FULL_PATH}" "--name=${NAME}" )
+
+
+    if [ -n "$REPOSITORY_URL" ]; then
+      PARAMS+=("--repository=${REPOSITORY_URL}")
+    fi
+
+    if [ -n "$REPOSITORY_COMMIT_SHA" ]; then
+      PARAMS+=("--commit-sha=${REPOSITORY_COMMIT_SHA}")
+    fi
+
+    if [ -n "$REPOSITORY_URL" ] && [ -n "$REPOSITORY_COMMIT_SHA" ]; then
+      PARAMS+=("--repository-path=${ITEM}")
+    fi
+
+    compote component upload "${PARAMS[@]}"
 
     EXIT_CODE=$?
     if [ "$EXIT_CODE" -ne "0" ]; then
