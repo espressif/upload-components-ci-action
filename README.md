@@ -33,10 +33,9 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-
       - name: Upload component to the component registry
         uses: espressif/upload-components-ci-action@v1
         with:
@@ -46,7 +45,7 @@ jobs:
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
 ```
 
-#### Uploading multiple components from one repository
+#### Uploading multiple components from the current repository
 
 ```yaml
 name: Push components to https://components.espressif.com
@@ -58,10 +57,9 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
-
       - name: Upload components to the component registry
         uses: espressif/upload-components-ci-action@v1
         with:
@@ -70,16 +68,48 @@ jobs:
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
 ```
 
+#### Uploading a component through a workflow from a different repository
+
+```yaml
+name: Push component to https://components.espressif.com
+on:
+  push:
+    branches:
+      - main
+jobs:
+  upload_components:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          repository: "another/repository"
+      - name: Save information about repository to the github environment
+        run:
+          echo "GITHUB_REPOSITORY_URL=`git config --get remote.origin.url`" >> "$GITHUB_ENV";
+          echo "GITHUB_COMMIT_SHA=`git rev-parse HEAD`" >> "$GITHUB_ENV";
+      - name: Upload components to the component registry
+        uses: espressif/upload-components-ci-action@v1
+        with:
+          name: "example"
+          namespace: "espressif"
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+          repository_url: ${{ env.GITHUB_REPOSITORY_URL }}
+          commit_sha: ${{ env.GITHUB_COMMIT_SHA }}
+```
+
 ## Parameters
 
-| Input            | Optional | Default                              | Description                                                                                                                      |
-| ---------------- | -------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| api_token        | ❌       |                                      | API Token for the component registry                                                                                             |
-| namespace        | ❌       |                                      | Component namespace                                                                                                              |
-| name             | ✔ / ❌   |                                      | Name is required for uploading a component from the root of the repository                                                       |
-| version          | ✔        |                                      | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3`   |
-| directories      | ✔        | Repo root                            | Semicolon separated list of directories with components.                                                                         |
-| skip_pre_release | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to skip [pre-release](https://semver.org/#spec-item-9) versions.                      |
-| dry_run          | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to upload a component for validation only without creating a version in the registry. |
-| service_url      | ✔        | https://components.espressif.com/api | (Deprecated) IDF Component registry API URL                                                                                      |
-| registry_url     | ✔        | https://components.espressif.com/    | IDF Component registry URL                                                                                                       |
+| Input                  | Optional | Default                              | Description                                                                                                                            |
+|------------------------|----------|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| api_token              | ❌        |                                      | API Token for the component registry                                                                                                   |
+| namespace              | ❌        |                                      | Component namespace                                                                                                                    |
+| name                   | ✔ / ❌    |                                      | Name is required for uploading a component from the root of the repository                                                             |
+| version                | ✔        |                                      | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3`         |
+| directories            | ✔        | Repo root                            | Semicolon separated list of directories with components.                                                                               |
+| skip_pre_release       | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to skip [pre-release](https://semver.org/#spec-item-9) versions.                            |
+| dry_run                | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to upload a component for validation only without creating a version in the registry.       |
+| service_url            | ✔        | https://components.espressif.com/api | (Deprecated) IDF Component registry API URL                                                                                            |
+| registry_url           | ✔        | https://components.espressif.com/    | IDF Component registry URL                                                                                                             |
+| repository_url         | ✔        | Current working repository           | URL of the repository where component is located. Set to empty string if you don't want to send the information about the repository.  |
+| commit_sha             | ✔        | Current commit sha                   | Git commit SHA of the the component version. Set to empty string if you don't want to send the information about the repository.       |
