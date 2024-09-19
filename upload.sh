@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Handle registry URL
+if [[ -n "$DEPRECATED_IDF_COMPONENT_REGISTRY_URL" ]]; then
+    if [[ -z "$IDF_COMPONENT_REGISTRY_URL" ]]; then
+        export IDF_COMPONENT_REGISTRY_URL="$DEPRECATED_IDF_COMPONENT_REGISTRY_URL"
+    else
+        echo "NOTICE: Both 'service_url' and 'registry_url' inputs are specified. 'registry_url' will be used as the final value."
+    fi
+fi
+
 IFS=';' read -ra DIRECTORIES <<<"$(echo -e "${COMPONENTS_DIRECTORIES:-.}" | tr -d '[:space:]')"
 NAMESPACE=${COMPONENTS_NAMESPACE:-espressif}
 UPLOAD_ARGUMENTS=("--allow-existing" "--namespace=${NAMESPACE}" )
