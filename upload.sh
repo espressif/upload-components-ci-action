@@ -9,6 +9,9 @@ if [[ -n "$DEPRECATED_IDF_COMPONENT_REGISTRY_URL" ]]; then
     fi
 fi
 
+# Set longer API timeout for large components
+export IDF_COMPONENT_API_TIMEOUT="1800"
+
 IFS=';' read -ra DIRECTORIES <<<"$(echo -e "${COMPONENTS_DIRECTORIES:-.}" | tr -d '[:space:]')"
 NAMESPACE=${COMPONENTS_NAMESPACE:-espressif}
 UPLOAD_ARGUMENTS=("--allow-existing" "--namespace=${NAMESPACE}" )
