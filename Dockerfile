@@ -1,7 +1,7 @@
-FROM python:3.12-bookworm
+FROM python:3.13-bookworm
 
-RUN pip install "idf-component-manager~=2.0"
+RUN pip install "idf-component-manager~=2.1"
 
-COPY upload.sh /upload.sh
+COPY upload.py /upload.py
 
-ENTRYPOINT  ["/upload.sh"]
+ENTRYPOINT  ["/upload.py"]
