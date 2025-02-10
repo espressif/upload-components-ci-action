@@ -20,17 +20,9 @@ def getenv_bool(var_name: str, default: bool = False) -> bool:
 
 
 def setup_environment_variables():
-    deprecated_url = os.getenv("DEPRECATED_IDF_COMPONENT_REGISTRY_URL", "")
-    registry_url = os.getenv("IDF_COMPONENT_REGISTRY_URL", "")
-
-    if deprecated_url:
-        if not registry_url:
-            os.environ["IDF_COMPONENT_REGISTRY_URL"] = deprecated_url
-        else:
-            print(
-                "NOTICE: Both 'service_url' and 'registry_url' inputs are specified. 'registry_url' will be used."
-            )
-
+    """
+    Set environment variables required for the 'compote component upload' command.
+    """
     os.environ["IDF_COMPONENT_API_TIMEOUT"] = "1800"
 
 

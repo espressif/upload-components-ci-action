@@ -114,7 +114,6 @@ jobs:
 | version          | ✔        |                                      | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3`        |
 | skip_pre_release | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to skip [pre-release](https://semver.org/#spec-item-9) versions.                           |
 | dry_run          | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to upload a component for validation only without creating a version in the registry.      |
-| service_url      | ✔        | https://components.espressif.com/api | (Deprecated, use "registry_url") IDF Component registry API URL                                                                       |
 | registry_url     | ✔        | https://components.espressif.com/    | IDF Component registry URL                                                                                                            |
 | repository_url   | ✔        | Current working repository           | URL of the repository where component is located. Set to empty string if you don't want to send the information about the repository. |
 | commit_sha       | ✔        | Current commit sha                   | Git commit SHA of the the component version. Set to empty string if you don't want to send the information about the repository.      |
