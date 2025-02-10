@@ -1,3 +1,4 @@
+---
 name: Sync issue comments to JIRA
 
 # This workflow will be triggered when new issue comment is created (including PR comments)

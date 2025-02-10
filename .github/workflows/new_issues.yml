@@ -1,3 +1,4 @@
+---
 name: Sync issues to Jira
 
 # This workflow will be triggered when a new issue is opened

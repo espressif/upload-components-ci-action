@@ -1,19 +1,29 @@
 # GitHub Action to upload ESP-IDF components to the component registry
 
-This action uploads [ESP-IDF](https://github.com/espressif/esp-idf) components from a GitHub repository to [Espressif Component Registry](https://components.espressif.com).
+This action uploads [ESP-IDF](https://github.com/espressif/esp-idf) components from a GitHub repository
+to [Espressif Component Registry](https://components.espressif.com).
 
 ## Usage
 
-The action requires `api_token` and `namespace` parameters to be set. If the repository contains only one component in the root directory, then the `name` parameter is also required. If the repository contains more than one component in subdirectories, it's necessary to set the `directories` parameter to the semicolon-separated list of directories with components. In this case, the base name of the directory will be used as a component name.
+The action requires `api_token` and `namespace` parameters to be set. If the repository contains only one
+component in the root directory, then the `name` parameter is also required. If the repository contains
+more than one component in subdirectories, it's necessary to set the `directories` parameter
+to the semicolon-separated list of directories with components.
+In this case, the base name of the directory will be used as a component name.
 
 ### Handling versions
 
-If the version in the manifest file is not already in the registry, this action will upload it. Every version of the component can be uploaded to the registry only once.
+If the version in the manifest file is not already in the registry, this action will upload it.
+Every version of the component can be uploaded to the registry only once.
 
 It is recommended to change the version in the manifest only when it's ready to be published.
-An alternative supported workflow is to set parameter `skip_pre_release` to any non-empty string and use [pre-release](https://semver.org/#spec-item-9) versions (like `1.0.0-dev`) during development and then change the version to a stable (like `1.0.0`) for release.
+An alternative supported workflow is to set parameter `skip_pre_release` to any non-empty string
+and use [pre-release](https://semver.org/#spec-item-9) versions (like `1.0.0-dev`) during development
+and then change the version to a stable (like `1.0.0`) for release.
 
-If the version of the component is not specified in the manifest file, you can use the `version` parameter. It must be a valid [semantic version](https://semver.org/) optionally prefixed with the character "v". I.e. versions formatted like `v1.2.3` or `1.2.3` are supported.
+If the version of the component is not specified in the manifest file, you can use the `version` parameter.
+It must be a valid [semantic version](https://semver.org/) optionally prefixed with the character "v".
+I.e. versions formatted like `v1.2.3` or `1.2.3` are supported.
 
 If a component with the same version is already in the registry, the action will skip the upload silently.
 
@@ -47,10 +57,10 @@ jobs:
 
 #### Uploading multiple components from the current repository
 
-If you want to upload multiple components from the same repository, you can specify the directories with components in the `directories` parameter. If the desired component name in the registry differs from the directory name, you can specify the component name before the colon.
+If you want to upload multiple components from the same repository, you can specify the directories with components in the `directories` parameter.
+If the desired component name in the registry differs from the directory name, you can specify the component name before the colon.
 
 i.e. `my_super_component:components/my_component` will upload the component from the `components/my_component` directory with the name `my_super_component`.
-
 
 ```yaml
 name: Push components to https://components.espressif.com
@@ -105,15 +115,15 @@ jobs:
 
 ## Parameters
 
-| Input            | Optional | Default                              | Description                                                                                                                           |
-| ---------------- | -------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| api_token        | ❌       |                                      | API Token for the component registry                                                                                                  |
-| namespace        | ❌       |                                      | Component namespace                                                                                                                   |
-| directories      | ✔        | Repo root                            | Semicolon separated list of directories with components. If the desired component name in the registry differs from the directory name, specify the component name before the colon (e.g., `custom_name:directory_name`). |
-| name             | ✔ / ❌   |                                      | Name is required for uploading a component from the root of the repository.                                                            |
-| version          | ✔        |                                      | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3`        |
-| skip_pre_release | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to skip [pre-release](https://semver.org/#spec-item-9) versions.                           |
-| dry_run          | ✔        | False                                | Set this flag to `true`, `t`, `yes` or `1` to upload a component for validation only without creating a version in the registry.      |
-| registry_url     | ✔        | https://components.espressif.com/    | IDF Component registry URL                                                                                                            |
-| repository_url   | ✔        | Current working repository           | URL of the repository where component is located. Set to empty string if you don't want to send the information about the repository. |
-| commit_sha       | ✔        | Current commit sha                   | Git commit SHA of the the component version. Set to empty string if you don't want to send the information about the repository.      |
+| Input            | Optional | Default                           | Description                                                                                                                                                                                                               |
+| ---------------- | -------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| api_token        | ❌       |                                   | API Token for the component registry                                                                                                                                                                                      |
+| namespace        | ❌       |                                   | Component namespace                                                                                                                                                                                                       |
+| directories      | ✔        | Repo root                         | Semicolon separated list of directories with components. If the desired component name in the registry differs from the directory name, specify the component name before the colon (e.g., `custom_name:directory_name`). |
+| name             | ✔ / ❌   |                                   | Name is required for uploading a component from the root of the repository.                                                                                                                                               |
+| version          | ✔        |                                   | Version of the component, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3`                                                                                            |
+| skip_pre_release | ✔        | False                             | Set this flag to `true`, `t`, `yes` or `1` to skip [pre-release](https://semver.org/#spec-item-9) versions.                                                                                                               |
+| dry_run          | ✔        | False                             | Set this flag to `true`, `t`, `yes` or `1` to upload a component for validation only without creating a version in the registry.                                                                                          |
+| registry_url     | ✔        | https://components.espressif.com/ | IDF Component registry URL                                                                                                                                                                                                |
+| repository_url   | ✔        | Current working repository        | URL of the repository where component is located. Set to empty string if you don't want to send the information about the repository.                                                                                     |
+| commit_sha       | ✔        | Current commit sha                | Git commit SHA of the the component version. Set to empty string if you don't want to send the information about the repository.                                                                                          |
