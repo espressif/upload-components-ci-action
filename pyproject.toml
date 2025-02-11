@@ -1,0 +1,43 @@
+
+[tool]
+
+[tool.ruff]
+extend-exclude = ["test_upload.py"]
+format.quote-style = "single"
+line-length = 120
+lint.ignore = ["S603", "S607", "N818"]
+lint.isort.force-single-line = true
+lint.isort.lines-between-types = 1
+lint.select = ["B", "C4", "C901", "E", "F", "I", "N", "PL", "S", "UP", "W"]
+
+[tool.mypy]
+disallow_incomplete_defs = true
+disallow_untyped_defs = false
+exclude = ["^__init__.py$", "^build/.*", "^dist/.*", "^docs/.*", "^tests/.*"]
+ignore_missing_imports = true
+pretty = true
+python_version = "3.12"
+warn_return_any = true
+
+[tool.commitizen]
+annotated_tag = true
+bump_message = 'change(bump): [skip-ci] release $current_version → $new_version'
+changelog_merge_prerelease = true
+name = "czespressif"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version = "2.0.0"
+version_files = ["sync_jira_actions/__init__.py"]
+version_provider = "commitizen"
+
+[tool.yamlfix]
+comments_min_spaces_from_content = 1
+line_length = 200
+preserve_quotes = true
+section_whitelines = 1
+sequence_style = "keep_style"
+whitelines = 1
+
+[tool.pytest]
+ini_options.addopts = "-s --log-cli-level DEBUG --cov=. --cov-report=term"
+ini_options.testpaths = "tests"

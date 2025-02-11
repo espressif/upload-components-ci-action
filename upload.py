@@ -1,0 +1,175 @@
+#! /usr/bin/env python
+
+import os
+import re
+import subprocess
+import sys
+
+from dataclasses import dataclass
+from pathlib import Path
+
+
+class UntaggedCommit(Exception):
+    pass
+
+
+class FatalError(Exception):
+    pass
+
+
+@dataclass
+class Component:
+    name: str | None
+    path: str
+
+
+def getenv_bool(var_name: str, default: bool = False) -> bool:
+    value = os.getenv(var_name, '').lower().strip()
+    return value in ['true', 't', 'yes', '1'] or default
+
+
+def setup_environment_variables():
+    """
+    Set environment variables required for the 'compote component upload' command.
+    """
+    os.environ['IDF_COMPONENT_API_TIMEOUT'] = '1800'
+
+
+def split_component_str(component_str: str) -> Component:
+    """
+    Split component string into name and path.
+    """
+
+    component = component_str.strip()
+
+    if ':' not in component_str:
+        return Component(name=None, path=component)
+
+    name, path = component_str.split(':', maxsplit=1)
+    return Component(name=name.strip(), path=path.strip())
+
+
+def parse_components_input() -> list[Component]:
+    dirs_str = str(os.environ['COMPONENTS'])
+    return [split_component_str(component) for component in re.split('[;\n]', dirs_str) if component.strip()]
+
+
+def upload_arguments() -> dict[str, str | None]:
+    """
+    Prepare arguments for the 'compote component upload' command.
+    Returns a dictionary with the arguments.
+    For flags without values, the value is set to None.
+    """
+
+    upload_args = {
+        'allow-existing': None,
+        'namespace': os.getenv('COMPONENTS_NAMESPACE', 'espressif'),
+    }
+
+    if getenv_bool('SKIP_PRE_RELEASE'):
+        upload_args['skip-pre-release'] = None
+
+    if getenv_bool('DRY_RUN'):
+        upload_args['dry-run'] = None
+
+    repo_url = os.getenv('REPOSITORY_URL')
+    if repo_url:
+        upload_args['repository'] = repo_url
+
+    commit_sha = os.getenv('COMMIT_SHA')
+    if commit_sha:
+        upload_args['commit-sha'] = commit_sha
+
+    version = os.getenv('COMPONENT_VERSION')
+
+    if version:
+        version = version.strip().lower()
+        upload_args['version'] = get_version_from_git() if version == 'git' else version
+
+    return upload_args
+
+
+def args_to_list(args: dict[str, str | None]) -> list[str]:
+    """
+    Convert upload arguments to a string suitable for command line execution.
+    """
+    args_list = []
+    for key, value in args.items():
+        if value is None:
+            args_list.append(f'--{key}')
+        else:
+            args_list.extend([f'--{key}', value])
+    return args_list
+
+
+def get_version_from_git() -> str:
+    subprocess.run(['git', 'fetch', '--force', '--tags'], check=False)
+    result = subprocess.run(['git', 'describe', '--exact-match'], capture_output=True, check=False)
+
+    if result.returncode != 0:
+        raise UntaggedCommit("Version set to 'git', but commit not tagged. Skipping upload.")
+
+    return str(result.stdout).strip().replace('v', '')
+
+
+def upload_components(
+    components: list[Component],
+    workspace_path: Path,
+    upload_args: dict[str, str | None],
+) -> None:
+    failed_components = []
+
+    for component in components:
+        args = upload_args.copy()
+        component_full_path = workspace_path / component.path
+
+        if component.name is None:
+            if component_full_path == workspace_path:
+                raise FatalError('Specify component name for the component in the root of the repo.')
+
+            component_name = component_full_path.name
+
+        else:
+            component_name = component.name
+
+        args['project-dir'] = component_full_path.as_posix()
+        args['name'] = component_name
+
+        if 'repository-url' in args and 'repository-commit-sha' in args:
+            args['repository-path'] = component.path
+
+        result = subprocess.run(['compote', 'component', 'upload'] + args_to_list(args), check=False).returncode
+
+        if result != 0:
+            failed_components.append(component_name)
+
+    if failed_components:
+        raise FatalError(f'Failed to upload components: {", ".join(failed_components)}')
+
+
+def main() -> None:
+    setup_environment_variables()
+
+    workspace_path = Path(os.environ['GITHUB_WORKSPACE'])
+
+    components = parse_components_input()
+
+    try:
+        upload_args = upload_arguments()
+    except UntaggedCommit as e:
+        print(e)
+        return
+
+    try:
+        upload_components(
+            workspace_path=workspace_path,
+            components=components,
+            upload_args=upload_args,
+        )
+    except FatalError as e:
+        print(e)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
