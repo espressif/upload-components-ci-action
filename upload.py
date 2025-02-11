@@ -1,9 +1,11 @@
 #! /usr/bin/env python
 
 import os
+import re
 import subprocess
 import sys
 
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -13,6 +15,12 @@ class UntaggedCommit(Exception):
 
 class FatalError(Exception):
     pass
+
+
+@dataclass
+class Component:
+    name: str | None
+    path: str
 
 
 def getenv_bool(var_name: str, default: bool = False) -> bool:
@@ -27,9 +35,23 @@ def setup_environment_variables():
     os.environ['IDF_COMPONENT_API_TIMEOUT'] = '1800'
 
 
-def parse_directories() -> list[str]:
-    dirs_str = os.getenv('COMPONENTS_DIRECTORIES', '.')
-    return [directory.strip() for directory in dirs_str.split(';')]
+def split_component_str(component_str: str) -> Component:
+    """
+    Split component string into name and path.
+    """
+
+    component = component_str.strip()
+
+    if ':' not in component_str:
+        return Component(name=None, path=component)
+
+    name, path = component_str.split(':', maxsplit=1)
+    return Component(name=name.strip(), path=path.strip())
+
+
+def parse_components_input() -> list[Component]:
+    dirs_str = str(os.environ['COMPONENTS'])
+    return [split_component_str(component) for component in re.split('[;\n]', dirs_str) if component.strip()]
 
 
 def upload_arguments() -> dict[str, str | None]:
@@ -90,43 +112,47 @@ def get_version_from_git() -> str:
     return str(result.stdout).strip().replace('v', '')
 
 
-def process_directories(
-    directories: list[str],
+def upload_components(
+    components: list[Component],
+    workspace_path: Path,
     upload_args: dict[str, str | None],
-) -> list[str]:
+) -> None:
     failed_components = []
 
-    github_workspace = Path(os.environ['GITHUB_WORKSPACE'])
-
-    for component_dir in directories:
+    for component in components:
         args = upload_args.copy()
-        component_full_path = github_workspace / component_dir
-        component_name_env = os.getenv('COMPONENT_NAME')
+        component_full_path = workspace_path / component.path
 
-        if component_full_path == github_workspace:
-            component_name = component_name_env
-            if not component_name:
-                raise FatalError('Specify component name or directory for single component upload.')
+        if component.name is None:
+            if component_full_path == workspace_path:
+                raise FatalError('Specify component name for the component in the root of the repo.')
+
+            component_name = component_full_path.name
+
         else:
-            component_name = Path(component_full_path).resolve().name
+            component_name = component.name
 
-        args['project-dir'] = str(component_full_path)
+        args['project-dir'] = component_full_path.as_posix()
         args['name'] = component_name
 
         if 'repository-url' in args and 'repository-commit-sha' in args:
-            args['repository-path'] = component_dir
+            args['repository-path'] = component.path
 
         result = subprocess.run(['compote', 'component', 'upload'] + args_to_list(args), check=False).returncode
 
         if result != 0:
             failed_components.append(component_name)
 
-    return failed_components
+    if failed_components:
+        raise FatalError(f'Failed to upload components: {", ".join(failed_components)}')
 
 
 def main() -> None:
     setup_environment_variables()
-    directories = parse_directories()
+
+    workspace_path = Path(os.environ['GITHUB_WORKSPACE'])
+
+    components = parse_components_input()
 
     try:
         upload_args = upload_arguments()
@@ -135,16 +161,13 @@ def main() -> None:
         return
 
     try:
-        failed_components = process_directories(
-            directories,
-            upload_args,
+        upload_components(
+            workspace_path=workspace_path,
+            components=components,
+            upload_args=upload_args,
         )
     except FatalError as e:
         print(e)
-        sys.exit(1)
-
-    if failed_components:
-        print(f'Failed components: {", ".join(failed_components)}')
         sys.exit(1)
 
 
