@@ -11,6 +11,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
+import requests
+
 from idf_component_tools.constants import MANIFEST_FILENAME
 from ruamel.yaml import YAML
 from ruamel.yaml import YAMLError
@@ -135,6 +137,33 @@ def parse_components_input() -> list[Component]:
     raise FatalError("No components specified. Use 'components' input or legacy 'name'/'directories' inputs.")
 
 
+def get_oidc_token() -> str:
+    github_oidc_url = os.getenv('ACTIONS_ID_TOKEN_REQUEST_URL')
+    github_token_request = os.getenv('ACTIONS_ID_TOKEN_REQUEST_TOKEN')
+    registry_url = os.getenv('IDF_COMPONENT_REGISTRY_URL') or 'https://components.espressif.com'
+
+    if not github_oidc_url or not github_token_request:
+        raise FatalError('Failed due to privileges. Please set the permissions "id-token: write" in the Github Action')
+
+    try:
+        response = requests.get(
+            f'{github_oidc_url}',
+            headers={'Authorization': f'Bearer {github_token_request}'},
+            timeout=5,
+            params={'audience': registry_url},
+        )
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise FatalError('Failed to fetch OIDC token due to a request error') from e
+
+    oidc_token: str = response.json().get('value')
+
+    if not oidc_token:
+        raise FatalError('Failed to revieve an OIDC token.')
+
+    return oidc_token
+
+
 def upload_arguments() -> dict[str, str | None]:
     """
     Prepare arguments for the 'compote component upload' command.
@@ -166,6 +195,12 @@ def upload_arguments() -> dict[str, str | None]:
     if version:
         version = version.strip().lower()
         upload_args['version'] = get_version_from_git() if version == 'git' else version
+
+    if not os.getenv('IDF_COMPONENT_API_TOKEN'):
+        print('Using OIDC token.')
+        os.environ['IDF_COMPONENT_API_TOKEN'] = get_oidc_token()
+    else:
+        print('Using ESP Component Registry token.')
 
     return upload_args
 

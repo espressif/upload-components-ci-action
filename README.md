@@ -1,12 +1,48 @@
 # GitHub Action to upload ESP-IDF components to the component registry
 
 This action uploads [ESP-IDF](https://github.com/espressif/esp-idf) components from a GitHub repository
-to [Espressif Component Registry](https://components.espressif.com).
+to [ESP Component Registry](https://components.espressif.com).
 
 ## Usage
 
 This action can be used to upload one or more components to a given `namespace` in the registry.
-The action requires `api_token`, `namespace` and `components` inputs to be set.
+The action requires `namespace` and `components` inputs to be set. In case of not using OIDC authentication, the `api_token` input must be set as well.
+
+### Authentication
+
+This GitHub Action supports two authentication methods for the ESP Component Registry:
+
+#### 1. OIDC Authentication (Recommended)
+
+OIDC ([OpenID Connect](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)) provides enhanced security by eliminating the need to store long-lived secrets. GitHub dynamically generates and provides secure tokens for authentication.
+
+Setup instructions:
+
+1. Sign in to the [ESP Component Registry](https://components.espressif.com)
+2. Click on the dropdown containing your username and navigate to the **Permissions** page.
+3. Select the namespace where your component will be uploaded
+   - *If your component doesn't exist yet:* Click the `+` button in the `Components` table and create it first
+4. Click on your component name in the `Components` table
+5. Add a trusted uploader by clicking the `+` button in the `Trusted Uploaders` table
+
+**Trusted Uploader** configuration:
+
+| Field       | Required | Description                                                                                         |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------- |
+| Repository  | ✔        | The GitHub repository in format `<organization>/<repository_name>` (e.g.  `espressif/my_component`) |
+| Branch      | ❌       | Specific branch name from which uploads are allowed (e.g.  `main`)                                  |
+| Environment | ❌       | GitHub environment name from which uploads are allowed (e.g. `production`)                          |
+
+If the optional `Branch` or `Environment` fields are not provided, the workflow will be allowed to upload a component version from any branch or environment.
+
+#### 2. ESP Component Registry Token Authentication (Alternative)
+
+As an alternative, you can authenticate using a **ESP Component Registry Token**:
+
+1. Sign in to the [ESP Component Registry](https://components.espressif.com)
+2. Click on the dropdown containing your username and navigate to the **Tokens** page
+3. Create a new token with appropriate permissions
+4. Store this token securely in your GitHub repository secrets and use it as `api_token` input
 
 ### Handling versions
 
@@ -24,6 +60,28 @@ It must be a valid [component version](https://docs.espressif.com/projects/idf-c
 I.e. versions formatted like `v1.2.3` or `1.2.3` are supported.
 
 ### Example workflows
+
+#### Uploading a component using a Github OIDC Token
+
+```yaml
+name: Push component to https://components.espressif.com
+on:
+  push:
+jobs:
+  upload_components:
+    permissions:
+      id-token: write # IMPORTANT: Required to generate an OIDC Token
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Upload component to the component registry
+        uses: espressif/upload-components-ci-action@v2
+        with:
+          components: "my_component: ."
+          namespace: "espressif"
+```
 
 #### Uploading one component in with the version in the `idf_component.yml` file
 
@@ -44,7 +102,7 @@ jobs:
       - name: Upload component to the component registry
         uses: espressif/upload-components-ci-action@v2
         with:
-          components: "my_component: . " # component_name: directory
+          components: "my_component: ." # component_name: directory
           namespace: "espressif"
           api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
 ```
@@ -166,9 +224,9 @@ jobs:
 
 | Input            | Optional | Default                           | Description                                                                                                                                                                                                                                               |
 | ---------------- | -------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| api_token        | ❌       |                                   | API Token for the component registry                                                                                                                                                                                                                      |
 | namespace        | ❌       |                                   | Component namespace                                                                                                                                                                                                                                       |
 | components       | ❌       |                                   | Semicolon or new-line separated list of `component_name:relative/path` pairs. If the desired component name in the registry matches the directory name, the component name can be omitted. For a component in the root of the repo, the name is required. |
+| api_token        | ?        |                                   | API Token for the component. Required unless uploading with a GitHub OIDC Token, in which case it is optional.                                                                                                                                            |
 | version          | ✔        |                                   | Version of the components, if not specified in the manifest. Should be a [semver](https://semver.org/) like `1.2.3` or `v1.2.3`. The version will be applied to all components.                                                                           |
 | skip_pre_release | ✔        | False                             | Set this flag to `true`, `t`, `yes` or `1` to skip [pre-release](https://semver.org/#spec-item-9) versions.                                                                                                                                               |
 | dry_run          | ✔        | False                             | Set this flag to `true`, `t`, `yes` or `1` to upload a component for validation only without creating a version in the registry.                                                                                                                          |

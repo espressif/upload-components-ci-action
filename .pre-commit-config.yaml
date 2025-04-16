@@ -18,7 +18,7 @@ repos:
       - id: check-shebang-scripts-are-executable
       - id: check-case-conflict
       - id: mixed-line-ending
-        args: ['-f=lf']
+        args: ["-f=lf"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.8
@@ -31,6 +31,7 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
+        additional_dependencies: [types-requests]
 
   - repo: https://github.com/espressif/conventional-precommit-linter
     rev: v1.10.0
@@ -42,7 +43,7 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        args: ['--write-changes']
+        args: ["--write-changes"]
         additional_dependencies: [tomli]
 
   - repo: https://github.com/executablebooks/mdformat
