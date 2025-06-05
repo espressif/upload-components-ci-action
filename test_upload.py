@@ -2,7 +2,8 @@ from unittest.mock import patch
 
 import pytest
 
-from upload import parse_components_input, split_component_str, Component, args_to_list
+from upload import parse_components_input, split_component_str, Component, args_to_list, mock_version_if_not_provided
+from pathlib import Path
 
 @pytest.fixture
 def mock_env(monkeypatch):
@@ -78,3 +79,21 @@ def test_parse_components_input_parametrized(monkeypatch, components_str, expect
 def test_args_to_list(input_args, expected):
     result = args_to_list(input_args)
     assert result == expected
+
+
+def test_mock_version_if_not_provided():
+    assert mock_version_if_not_provided({}, Path(''))["version"] == "1000.1000.1000"
+
+
+def test_mock_version_if_provided_in_input():
+    assert mock_version_if_not_provided({"version": "1.2.3"}, Path(''))["version"] == "1.2.3"
+
+
+def test_mock_version_if_not_provided_even_in_manifest(tmp_path):
+    (tmp_path / "idf_component.yml").touch()
+    assert mock_version_if_not_provided({}, tmp_path)['version'] == "1000.1000.1000"
+
+
+def test_mock_version_if_provided_in_manifest(tmp_path):
+    (tmp_path / "idf_component.yml").write_text("version: 1.2.3")
+    assert mock_version_if_not_provided({}, tmp_path) == {}
