@@ -82,7 +82,8 @@ def test_args_to_list(input_args, expected):
 
 
 def test_mock_version_if_not_provided():
-    assert mock_version_if_not_provided({}, Path(''))["version"] == "1000.1000.1000"
+    result = mock_version_if_not_provided({}, Path(''))["version"]
+    assert result.startswith("1000.1000.1000-mock.")
 
 
 def test_mock_version_if_provided_in_input():

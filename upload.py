@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 
 import os
+import random
 import re
+import string
 import subprocess
 import sys
 
@@ -117,7 +119,7 @@ def get_version_from_git() -> str:
     return str(result.stdout).strip().replace('v', '')
 
 
-MOCK_VERSION = '1000.1000.1000'
+MOCK_VERSION = f'1000.1000.1000-mock.{"".join(random.choices(string.ascii_lowercase, k=8))}'  # noqa: S311
 
 
 def mock_version_if_not_provided(args: dict[str, str | None], component_full_path: Path) -> dict[str, str | None]:
