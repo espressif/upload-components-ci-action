@@ -139,6 +139,29 @@ jobs:
           commit_sha: ${{ env.GITHUB_COMMIT_SHA }}
 ```
 
+#### Validating a component archive on pull request
+
+```yaml
+name: Validate component archive
+on:
+  push:
+jobs:
+  validate_components:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - name: Validate component archive
+        uses: espressif/upload-components-ci-action@v2
+        with:
+          components: "my_component: ."
+          namespace: "espressif"
+          api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+          dry_run: true
+```
+
 ## Parameters
 
 | Input            | Optional | Default                           | Description                                                                                                                                                                                                                                               |

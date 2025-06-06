@@ -5,8 +5,13 @@ import re
 import subprocess
 import sys
 
+from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
+
+from idf_component_tools.constants import MANIFEST_FILENAME
+from ruamel.yaml import YAML
+from ruamel.yaml import YAMLError
 
 
 class UntaggedCommit(Exception):
@@ -112,6 +117,39 @@ def get_version_from_git() -> str:
     return str(result.stdout).strip().replace('v', '')
 
 
+MOCK_VERSION = '1000.1000.1000'
+
+
+def mock_version_if_not_provided(args: dict[str, str | None], component_full_path: Path) -> dict[str, str | None]:
+    """
+    Returns a new args dict with a mock version set if needed.
+    """
+    new_args = deepcopy(args)
+
+    # Check input of the GitHub Action
+    if args.get('version') is not None:
+        return new_args
+
+    manifest_path = component_full_path / MANIFEST_FILENAME
+    # Even if the manifest file does not exist, mock the version
+    if not manifest_path.is_file():
+        new_args['version'] = MOCK_VERSION
+        return new_args
+
+    yaml = YAML()
+    # Check if version is already set in manifest
+    try:
+        content = yaml.load(manifest_path)
+    except YAMLError:
+        new_args['version'] = MOCK_VERSION
+        return new_args
+
+    if not content or not content.get('version'):
+        new_args['version'] = MOCK_VERSION
+
+    return new_args
+
+
 def upload_components(
     components: list[Component],
     workspace_path: Path,
@@ -137,6 +175,9 @@ def upload_components(
 
         if 'repository-url' in args and 'repository-commit-sha' in args:
             args['repository-path'] = component.path
+
+        if getenv_bool('DRY_RUN'):
+            args = mock_version_if_not_provided(args, component_full_path)
 
         result = subprocess.run(['compote', 'component', 'upload'] + args_to_list(args), check=False).returncode
 
