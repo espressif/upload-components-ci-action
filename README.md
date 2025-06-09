@@ -175,3 +175,82 @@ jobs:
 | registry_url     | ✔        | https://components.espressif.com/ | IDF Component registry URL                                                                                                                                                                                                                                |
 | repository_url   | ✔        | Current working repository        | URL of the repository where component is located. Set to empty string if you don't want to send the information about the repository.                                                                                                                     |
 | commit_sha       | ✔        | Current commit SHA                | Git commit SHA of the component version. Set to empty string if you don't want to send the information about the repository.                                                                                                                              |
+
+## Upgrading from v1 to v2
+
+This section provides guidance on migrating from v1 to v2 of this action.
+
+### Key changes in v2
+
+1. **New `components` input**: Replaces the `name` and `directories` inputs with a more flexible format
+2. **Deprecated inputs**: `name` and `directories` are deprecated but still partially supported
+3. **Removed input**: `service_url` has been completely removed (it was previously deprecated in v1 in favor of `registry_url`)
+4. **Enhanced component specification**: Components can now be specified with custom names and paths
+
+### Migration guide
+
+#### Single component from repository root
+
+**v1 usage:**
+
+```yaml
+- uses: espressif/upload-components-ci-action@v1
+  with:
+    name: "my_component"
+    namespace: "espressif"
+    api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+```
+
+**v2 equivalent:**
+
+```yaml
+- uses: espressif/upload-components-ci-action@v2
+  with:
+    components: "my_component:."
+    namespace: "espressif"
+    api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+```
+
+#### Multiple components from directories
+
+**v1 usage:**
+
+```yaml
+- uses: espressif/upload-components-ci-action@v1
+  with:
+    directories: "components/my_component;components/another_component"
+    namespace: "espressif"
+    api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+```
+
+**v2 equivalent:**
+
+```yaml
+- uses: espressif/upload-components-ci-action@v2
+  with:
+    components: |
+      components/my_component
+      components/another_component
+    namespace: "espressif"
+    api_token: ${{ secrets.IDF_COMPONENT_API_TOKEN }}
+```
+
+#### Service URL migration (if used in v1)
+
+**v1 usage (deprecated):**
+
+```yaml
+- uses: espressif/upload-components-ci-action@v1
+  with:
+    service_url: "https://components.espressif.com/api"
+    # ... other inputs
+```
+
+**v2 equivalent:**
+
+```yaml
+- uses: espressif/upload-components-ci-action@v2
+  with:
+    registry_url: "https://components.espressif.com/"
+    # ... other inputs
+```
