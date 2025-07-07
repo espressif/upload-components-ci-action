@@ -1,8 +1,9 @@
 from unittest.mock import patch
 
 import pytest
+import requests
 
-from upload import parse_components_input, split_component_str, Component, args_to_list, mock_version_if_not_provided
+from upload import parse_components_input, split_component_str, Component, args_to_list, mock_version_if_not_provided, get_oidc_token, FatalError
 from pathlib import Path
 
 @pytest.fixture
@@ -14,6 +15,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv('REPOSITORY_URL', 'https://fake.repo.url')
     monkeypatch.setenv('COMMIT_SHA', 'a' * 40)
     monkeypatch.setenv('COMPONENT_NAME', 'fake_component')
+    monkeypatch.setenv('IDF_COMPONENT_API_TOKEN', 'fake_token')
 
 def test_main_no_failure(mock_env):
     from upload import main
@@ -236,3 +238,21 @@ def test_legacy_directories_with_spaces_and_empty_entries(monkeypatch):
         Component(name=None, path="comp3")
     ]
     assert result == expected
+
+
+def test_get_oidc_token_success(monkeypatch):
+    class MockResponse:
+        def raise_for_status(self): pass
+        def json(self): return {'value': 'mocked_oidc_token'}
+
+    monkeypatch.setenv('ACTIONS_ID_TOKEN_REQUEST_URL', 'https://test.com/oidc')
+    monkeypatch.setenv('ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'test')
+    monkeypatch.setattr(requests, 'get', lambda *args, **kwargs: MockResponse())
+
+    token = get_oidc_token()
+    assert token == 'mocked_oidc_token'
+
+
+def test_get_oidc_without_permissions():
+    with pytest.raises(FatalError, match='set the permissions "id-token: write"'):
+        get_oidc_token()
