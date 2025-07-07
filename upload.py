@@ -26,6 +26,12 @@ class FatalError(Exception):
     pass
 
 
+class MissingAuthConfigurationError(Exception):
+    """Raised when no valid authentication method (api_token or OIDC) is configured."""
+
+    pass
+
+
 @dataclass
 class Component:
     name: str | None
@@ -143,7 +149,7 @@ def get_oidc_token() -> str:
     registry_url = os.getenv('IDF_COMPONENT_REGISTRY_URL') or 'https://components.espressif.com'
 
     if not github_oidc_url or not github_token_request:
-        raise FatalError('Failed due to privileges. Please set the permissions "id-token: write" in the Github Action')
+        raise MissingAuthConfigurationError
 
     try:
         response = requests.get(
@@ -159,7 +165,7 @@ def get_oidc_token() -> str:
     oidc_token: str = response.json().get('value')
 
     if not oidc_token:
-        raise FatalError('Failed to revieve an OIDC token.')
+        raise FatalError('Failed to receive an OIDC token.')
 
     return oidc_token
 
@@ -195,12 +201,6 @@ def upload_arguments() -> dict[str, str | None]:
     if version:
         version = version.strip().lower()
         upload_args['version'] = get_version_from_git() if version == 'git' else version
-
-    if not os.getenv('IDF_COMPONENT_API_TOKEN'):
-        print('Using OIDC token.')
-        os.environ['IDF_COMPONENT_API_TOKEN'] = get_oidc_token()
-    else:
-        print('Using ESP Component Registry token.')
 
     return upload_args
 
@@ -299,6 +299,31 @@ def upload_components(
         raise FatalError(f'Failed to upload components: {", ".join(failed_components)}')
 
 
+def ensure_token():
+    if os.getenv('IDF_COMPONENT_API_TOKEN'):
+        print('Using ESP Component Registry token.')
+        return
+
+    if getenv_bool('DRY_RUN'):
+        return
+
+    try:
+        os.environ['IDF_COMPONENT_API_TOKEN'] = get_oidc_token()
+        print('Using GitHub OIDC token.')
+    except MissingAuthConfigurationError as e:
+        raise FatalError(
+            'Failed to authenticate: no valid token provided.\n'
+            "- If you intended to use the ESP Component Registry token, please set the 'api_token' "
+            'input in your workflow.\n'
+            '- If you intended to use GitHub OIDC for authentication, ensure that your workflow has '
+            'the required permissions:\n'
+            '  permissions:\n'
+            '    id-token: write\n'
+            '\n'
+            'Refer to the documentation for proper setup of authentication methods.'
+        ) from e
+
+
 def main() -> None:
     setup_environment_variables()
 
@@ -317,6 +342,7 @@ def main() -> None:
         return
 
     try:
+        ensure_token()
         upload_components(
             workspace_path=workspace_path,
             components=components,
