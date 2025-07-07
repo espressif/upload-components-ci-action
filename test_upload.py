@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from upload import parse_components_input, split_component_str, Component, args_to_list, mock_version_if_not_provided, get_oidc_token, FatalError
+from upload import parse_components_input, split_component_str, Component, args_to_list, mock_version_if_not_provided, get_oidc_token, FatalError, ensure_token, MissingAuthConfigurationError
 from pathlib import Path
 
 @pytest.fixture
@@ -254,5 +254,29 @@ def test_get_oidc_token_success(monkeypatch):
 
 
 def test_get_oidc_without_permissions():
-    with pytest.raises(FatalError, match='set the permissions "id-token: write"'):
+    with pytest.raises(MissingAuthConfigurationError):
         get_oidc_token()
+
+
+def test_ensure_token(monkeypatch, capsys):
+    monkeypatch.setenv('IDF_COMPONENT_API_TOKEN', 'mocked_token')
+    ensure_token()
+    captured = capsys.readouterr()
+    assert captured.out == 'Using ESP Component Registry token.\n'
+
+def test_ensure_token_no_token(monkeypatch, capsys):
+    monkeypatch.delenv('IDF_COMPONENT_API_TOKEN', raising=False)
+    message = (
+        "Failed to authenticate: no valid token provided.\n"
+        "- If you intended to use the ESP Component Registry token, please set the 'api_token' "
+        "input in your workflow.\n"
+        "- If you intended to use GitHub OIDC for authentication, ensure that your workflow has "
+        "the required permissions:\n"
+        "  permissions:\n"
+        "    id-token: write\n"
+        "\n"
+        "Refer to the documentation for proper setup of authentication methods."
+    )
+
+    with pytest.raises(FatalError, match=message):
+        ensure_token()
