@@ -188,9 +188,9 @@ def upload_arguments() -> dict[str, str | None]:
     if getenv_bool('DRY_RUN'):
         upload_args['dry-run'] = None
 
-    repo_url = os.getenv('REPOSITORY_URL')
-    if repo_url:
-        upload_args['repository'] = repo_url
+    repository_url = os.getenv('REPOSITORY_URL')
+    if repository_url:
+        upload_args['repository'] = repository_url
 
     commit_sha = os.getenv('COMMIT_SHA')
     if commit_sha:
@@ -284,13 +284,15 @@ def upload_components(
         args['project-dir'] = component_full_path.as_posix()
         args['name'] = component_name
 
-        if 'repository-url' in args and 'repository-commit-sha' in args:
+        if 'repository' in args and 'commit-sha' in args:
             args['repository-path'] = component.path
 
         if getenv_bool('DRY_RUN'):
             args = mock_version_if_not_provided(args, component_full_path)
 
-        result = subprocess.run(['compote', 'component', 'upload'] + args_to_list(args), check=False).returncode
+        command = ['compote', 'component', 'upload'] + args_to_list(args)
+        print(f'Executing command: {" ".join(command)}')
+        result = subprocess.run(command, check=False).returncode
 
         if result != 0:
             failed_components.append(component_name)
@@ -300,11 +302,11 @@ def upload_components(
 
 
 def ensure_token():
-    if os.getenv('IDF_COMPONENT_API_TOKEN'):
-        print('Using ESP Component Registry token.')
+    if getenv_bool('DRY_RUN'):
         return
 
-    if getenv_bool('DRY_RUN'):
+    if os.getenv('IDF_COMPONENT_API_TOKEN'):
+        print('Using ESP Component Registry token.')
         return
 
     try:
