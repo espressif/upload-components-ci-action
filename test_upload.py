@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from upload import parse_components_input, split_component_str, Component, args_to_list, mock_version_if_not_provided, get_oidc_token, FatalError, ensure_token, MissingAuthConfigurationError
+from upload import parse_components_input, split_component_str, Component,upload_arguments, args_to_list, mock_version_if_not_provided, get_oidc_token, FatalError, ensure_token, MissingAuthConfigurationError
 from pathlib import Path
 
 @pytest.fixture
@@ -280,3 +280,43 @@ def test_ensure_token_no_token(monkeypatch, capsys):
 
     with pytest.raises(FatalError, match=message):
         ensure_token()
+
+
+@pytest.mark.parametrize(
+    "env_vars,expected_args",
+    [
+        ({}, {'allow-existing': None, 'namespace': 'espressif'}),
+        ({'COMPONENTS_NAMESPACE': 'custom'}, {'allow-existing': None, 'namespace': 'custom'}),
+        ({'SKIP_PRE_RELEASE': 'true'}, {'allow-existing': None, 'namespace': 'espressif', 'skip-pre-release': None}),
+        ({'DRY_RUN': 'true'}, {'allow-existing': None, 'namespace': 'espressif', 'dry-run': None}),
+        ({'REPOSITORY_URL': 'https://example.com'}, {'allow-existing': None, 'namespace': 'espressif', 'repository': 'https://example.com'}),
+        ({'COMMIT_SHA': 'abc123'}, {'allow-existing': None, 'namespace': 'espressif', 'commit-sha': 'abc123'}),
+        ({'COMPONENT_VERSION': '  2.0.0  '}, {'allow-existing': None, 'namespace': 'espressif', 'version': '2.0.0'}),
+        (
+            {
+                'COMPONENTS_NAMESPACE': 'myns',
+                'SKIP_PRE_RELEASE': 'true',
+                'REPOSITORY_URL': 'https://repo.com',
+                'COMMIT_SHA': 'def456',
+                'COMPONENT_VERSION': '3.0.0'
+            },
+            {
+                'allow-existing': None,
+                'namespace': 'myns',
+                'skip-pre-release': None,
+                'repository': 'https://repo.com',
+                'commit-sha': 'def456',
+                'version': '3.0.0'
+            }
+        )
+    ]
+)
+def test_upload_arguments(monkeypatch, env_vars, expected_args):
+    for key in ['COMPONENTS_NAMESPACE', 'SKIP_PRE_RELEASE', 'DRY_RUN', 'REPOSITORY_URL', 'COMMIT_SHA', 'COMPONENT_VERSION']:
+        monkeypatch.delenv(key, raising=False)
+
+    for key, value in env_vars.items():
+        monkeypatch.setenv(key, value)
+
+    result = upload_arguments()
+    assert result == expected_args

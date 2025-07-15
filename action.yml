@@ -1,6 +1,6 @@
 ---
-name: "Upload components"
-description: "Upload components to Espressif IDF component registry"
+name: 'Upload components'
+description: 'Upload components to Espressif IDF component registry'
 
 branding:
   icon: upload
@@ -8,33 +8,33 @@ branding:
 
 inputs:
   namespace:
-    description: "Namespace on the registry for the components"
+    description: 'Namespace on the registry for the components'
     required: true
   components:
     description: "Semicolon or new-line separated list of `component_name:relative/path` pairs. If the desired component name in the registry matches the directory name, the component name can be omitted.\
       \ For a component in the root of the repo, the name is required."
     required: true
   api_token:
-    description: "API Token for the component registry (if left empty, the action will use OIDC authentication)"
+    description: 'API Token for the component registry (if left empty, the action will use OIDC authentication)'
     required: false
   version:
-    description: "Version of the component, if not specified in the manifest. Can be a semantic version or `git` for getting version from git tag."
+    description: 'Version of the component, if not specified in the manifest. Can be a semantic version or `git` for getting version from git tag.'
     required: false
   registry_url:
-    description: "Component registry endpoint"
+    description: 'Component registry endpoint'
     required: false
   skip_pre_release:
-    description: "Flag to skip pre-release versions. Set it to any non-empty string to skip pre-release versions."
+    description: 'Flag to skip pre-release versions. Set it to any non-empty string to skip pre-release versions.'
     required: false
   dry_run:
-    description: "Upload component for validation without creating a version in the registry."
+    description: 'Upload component for validation without creating a version in the registry.'
     required: false
   repository_url:
-    description: "URL of the repository where component is located"
+    description: 'URL of the repository where component is located'
     required: false
     default: ${{ github.repositoryUrl }}
   commit_sha:
-    description: "Git commit SHA of the the component version"
+    description: 'Git commit SHA of the component version'
     required: false
     default: ${{ github.sha }}
   name:
@@ -47,8 +47,8 @@ inputs:
     deprecationMessage: 'The directories input is deprecated. Use the components input instead with format "directory_name" or "component_name:directory_name".'
 
 runs:
-  using: "docker"
-  image: "Dockerfile"
+  using: 'docker'
+  image: 'Dockerfile'
   env:
     COMPONENTS: ${{ inputs.components }}
     COMPONENTS_NAMESPACE: ${{ inputs.namespace }}
@@ -58,7 +58,7 @@ runs:
     SKIP_PRE_RELEASE: ${{ inputs.skip_pre_release }}
     DRY_RUN: ${{ inputs.dry_run }}
     REPOSITORY_URL: ${{ inputs.repository_url }}
-    REPOSITORY_COMMIT_SHA: ${{ inputs.commit_sha }}
+    COMMIT_SHA: ${{ inputs.commit_sha }}
     # Deprecated inputs for backward compatibility
     COMPONENT_NAME: ${{ inputs.name }}
     COMPONENT_DIRECTORIES: ${{ inputs.directories }}
