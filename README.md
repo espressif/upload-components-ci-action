@@ -73,7 +73,7 @@ jobs:
       id-token: write # IMPORTANT: Required to generate an OIDC Token
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Upload component to the component registry
@@ -96,7 +96,7 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Upload component to the component registry
@@ -122,7 +122,7 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Upload component to the component registry
@@ -154,7 +154,7 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Upload components to the component registry
@@ -179,7 +179,7 @@ jobs:
   upload_components:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
           repository: "another/repository"
@@ -208,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: "recursive"
       - name: Validate component archive
