@@ -16,7 +16,7 @@ disallow_untyped_defs = false
 exclude = ["^__init__.py$", "^build/.*", "^dist/.*", "^docs/.*", "^tests/.*"]
 ignore_missing_imports = true
 pretty = true
-python_version = "3.12"
+python_version = "3.14"
 warn_return_any = true
 
 [tool.commitizen]
