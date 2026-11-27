@@ -1,3 +1,4 @@
+import os
 from unittest.mock import patch
 
 import pytest
@@ -240,17 +241,39 @@ def test_legacy_directories_with_spaces_and_empty_entries(monkeypatch):
     assert result == expected
 
 
-def test_get_oidc_token_success(monkeypatch):
+@pytest.mark.parametrize(
+    'registry_url,expected_audience',
+    [
+        ('https://components-staging.espressif.com', 'https://components-staging.espressif.com'),
+        ('https://components-staging.espressif.com/', 'https://components-staging.espressif.com'),
+        ('https://components-staging.espressif.com///', 'https://components-staging.espressif.com'),
+        (None, 'https://components.espressif.com'),
+        ('', 'https://components.espressif.com'),
+    ],
+)
+def test_get_oidc_token_success(monkeypatch, registry_url, expected_audience):
     class MockResponse:
         def raise_for_status(self): pass
         def json(self): return {'value': 'mocked_oidc_token'}
 
     monkeypatch.setenv('ACTIONS_ID_TOKEN_REQUEST_URL', 'https://test.com/oidc')
     monkeypatch.setenv('ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'test')
-    monkeypatch.setattr(requests, 'get', lambda *args, **kwargs: MockResponse())
+    if registry_url is None:
+        monkeypatch.delenv('IDF_COMPONENT_REGISTRY_URL', raising=False)
+    else:
+        monkeypatch.setenv('IDF_COMPONENT_REGISTRY_URL', registry_url)
 
-    token = get_oidc_token()
+    with patch.object(requests, 'get', return_value=MockResponse()) as mock_get:
+        token = get_oidc_token()
+
+    mock_get.assert_called_once_with(
+        'https://test.com/oidc',
+        headers={'Authorization': 'Bearer test'},
+        timeout=5,
+        params={'audience': expected_audience},
+    )
     assert token == 'mocked_oidc_token'
+    assert os.getenv('IDF_COMPONENT_REGISTRY_URL') == registry_url
 
 
 def test_get_oidc_without_permissions():

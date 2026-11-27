@@ -156,7 +156,7 @@ def get_oidc_token() -> str:
             f'{github_oidc_url}',
             headers={'Authorization': f'Bearer {github_token_request}'},
             timeout=5,
-            params={'audience': registry_url},
+            params={'audience': registry_url.rstrip('/')},
         )
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
